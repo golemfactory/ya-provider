@@ -4,7 +4,6 @@ use serde_json::json;
 
 use ya_agreement_utils::ComInfo;
 use ya_client::model::{payment::Account, NodeId};
-use ya_core_model::payment::local::NetworkName;
 
 use super::model::{PaymentDescription, PaymentModel};
 use crate::market::presets::Preset;
@@ -12,7 +11,7 @@ use crate::market::presets::Preset;
 #[derive(Clone, Debug)]
 pub struct AccountView {
     pub address: NodeId,
-    pub network: NetworkName,
+    pub network: String,
     pub platform: String,
 }
 
@@ -20,7 +19,7 @@ impl From<Account> for AccountView {
     fn from(account: Account) -> Self {
         Self {
             address: account.address.parse().unwrap(), // TODO: use TryFrom
-            network: account.network.parse().unwrap(), // TODO: use TryFrom
+            network: account.network,                  // TODO: use TryFrom
             platform: account.platform,
         }
     }

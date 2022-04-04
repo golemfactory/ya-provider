@@ -10,7 +10,6 @@ use std::time::{Duration, SystemTime};
 use ya_agreement_utils::agreement::TypedArrayPointer;
 use ya_agreement_utils::*;
 use ya_client::cli::ProviderApi;
-use ya_core_model::payment::local::NetworkName;
 use ya_file_logging::{start_logger, LoggerHandle};
 
 use crate::config::globals::GlobalsState;
@@ -69,7 +68,7 @@ pub struct ProviderAgent {
     hardware: hardware::Manager,
     accounts: Vec<AccountView>,
     log_handler: LoggerHandle,
-    networks: Vec<NetworkName>,
+    networks: Vec<String>,
 }
 
 impl ProviderAgent {
@@ -129,13 +128,10 @@ impl ProviderAgent {
         args.payment.session_id = args.market.session_id.clone();
 
         let networks = args.node.account.networks.clone();
-        for n in networks.iter() {
-            let net_color = match n {
-                NetworkName::Mainnet => yansi::Color::Magenta,
-                NetworkName::Polygon => yansi::Color::Magenta,
-                NetworkName::Rinkeby => yansi::Color::Cyan,
-                NetworkName::Mumbai => yansi::Color::Cyan,
-                NetworkName::Goerli => yansi::Color::Cyan,
+        for n in &networks {
+            let net_color = match n.as_str() {
+                "mainnet" | "polygon" => yansi::Color::Magenta,
+                "rinkeby" | "mumbai" | "goerli" => yansi::Color::Cyan,
                 _ => yansi::Color::Red,
             };
             log::info!("Using payment network: {}", net_color.paint(&n));
@@ -249,7 +245,7 @@ impl ProviderAgent {
         }
     }
 
-    fn accounts(&self, networks: &Vec<NetworkName>) -> anyhow::Result<Vec<AccountView>> {
+    fn accounts(&self, networks: &[String]) -> anyhow::Result<Vec<AccountView>> {
         let globals = self.globals.get_state();
         if let Some(address) = &globals.account {
             log::info!(

@@ -9,10 +9,8 @@ use futures::channel::oneshot;
 use notify::*;
 use serde::{Deserialize, Serialize};
 use structopt::{clap, StructOpt};
-use strum::VariantNames;
 use ya_client::{cli::ApiOpts, model::node_id::NodeId};
 
-use ya_core_model::payment::local::NetworkName;
 use ya_utils_path::data_dir::DataDir;
 
 use crate::cli::clean::CleanConfig;
@@ -103,6 +101,8 @@ impl ProviderConfig {
     }
 }
 
+const POSSIBLE_NETWORKS: [&str; 5] = ["mainnet", "rinkeby", "goerli", "polygon", "mumbai"];
+
 #[derive(StructOpt, Clone, Debug, Serialize, Deserialize, derive_more::Display)]
 #[display(
     fmt = "{}Networks: {:?}",
@@ -114,8 +114,8 @@ pub struct ReceiverAccount {
     #[structopt(long, env = "YA_ACCOUNT")]
     pub account: Option<NodeId>,
     /// Payment network.
-    #[structopt(long = "payment-network", env = "YA_PAYMENT_NETWORK", possible_values = NetworkName::VARIANTS, default_value = NetworkName::Mainnet.into())]
-    pub networks: Vec<NetworkName>,
+    #[structopt(long = "payment-network", env = "YA_PAYMENT_NETWORK", possible_values = &POSSIBLE_NETWORKS, default_value ="mainnet")]
+    pub networks: Vec<String>,
 }
 
 #[derive(StructOpt, Clone, Debug)]
@@ -178,7 +178,6 @@ pub struct UpdateNames {
 #[structopt(about = clap::crate_description!())]
 #[structopt(global_setting = clap::AppSettings::ColoredHelp)]
 #[structopt(global_setting = clap::AppSettings::DeriveDisplayOrder)]
-#[structopt(version = ya_compile_time_utils::version_describe!())]
 pub struct StartupConfig {
     #[structopt(flatten)]
     pub config: ProviderConfig,

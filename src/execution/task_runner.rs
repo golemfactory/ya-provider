@@ -435,11 +435,7 @@ impl TaskRunner {
 
         self.save_agreement(&agreement_path, &agreement_id)?;
 
-        let mut args = vec![
-            "service-bus",
-            activity_id,
-            ya_core_model::activity::local::BUS_ID,
-        ];
+        let mut args = vec!["service-bus", activity_id, "/local/activity"];
         args.extend(["-c", self.cache_dir.to_str().ok_or(anyhow!("None"))?].iter());
         args.extend(["-w", working_dir.to_str().ok_or(anyhow!("None"))?].iter());
         args.extend(["-a", agreement_path.to_str().ok_or(anyhow!("None"))?].iter());

@@ -521,7 +521,7 @@ mod tests {
     #[test]
     fn test_fill_registry_from_local_exe_unit_descriptor() {
         let exe_units_descriptor = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../exe-unit/resources/local-exeunits-descriptor.json");
+            .join("test-resources/local-exeunits-descriptor.json");
         let mut registry = ExeUnitsRegistry::new();
         registry
             .register_exeunits_from_file(&exe_units_descriptor)
@@ -542,7 +542,7 @@ mod tests {
     #[test]
     fn test_fill_registry_from_deb_exe_unit_descriptor() {
         let exe_units_descriptor = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../exe-unit/resources/exeunits-descriptor.json");
+            .join("test-resources/exeunits-descriptor.json");
         let mut registry = ExeUnitsRegistry::new();
         registry
             .register_exeunits_from_file(&exe_units_descriptor)

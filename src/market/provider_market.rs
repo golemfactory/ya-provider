@@ -370,7 +370,7 @@ async fn process_agreement(
     );
 
     let config = ctx.config;
-    let agreement = AgreementView::try_from(agreement)
+    let agreement = AgreementView::try_from(serde_json::to_value(agreement)?)
         .map_err(|e| anyhow!("Invalid agreement. Error: {}", e))?;
 
     let action = ctx
