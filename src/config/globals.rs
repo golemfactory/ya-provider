@@ -19,6 +19,7 @@ pub struct GlobalsState {
     pub node_name: Option<String>,
     pub subnet: Option<String>,
     pub account: Option<NodeId>,
+    pub charity_wallet: Option<NodeId>,
 }
 
 impl<'de> Deserialize<'de> for GlobalsState {
@@ -56,6 +57,7 @@ impl<'de> Deserialize<'de> for GlobalsState {
             node_name: s.node_name,
             subnet: s.subnet,
             account: s.account.map(|a| a.address()),
+            charity_wallet: Default::default(),
         })
     }
 }
