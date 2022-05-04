@@ -203,6 +203,7 @@ impl ProviderAgent {
             // TODO: Check charity network.
             if let Some(charity_address) = globals.charity_wallet {
                 for account in &mut accounts {
+                    account.charity_percentage = globals.charity_percentage;
                     account.charity_address = Some(charity_address);
                 }
             }

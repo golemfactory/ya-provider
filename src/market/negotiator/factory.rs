@@ -2,6 +2,7 @@ use actix::Addr;
 use humantime;
 use std::sync::Arc;
 use structopt::StructOpt;
+use ya_client::model::NodeId;
 
 use super::common::NegotiatorAddr;
 use crate::market::config::MarketConfig;
@@ -52,6 +53,15 @@ pub struct PaymentTimeoutConfig {
     pub payment_timeout_required_duration: std::time::Duration,
 }
 
+/// Configuration for Charity negotiator
+#[derive(StructOpt, Clone, Debug)]
+pub struct CharityConfig {
+    #[structopt(long, env)]
+    pub charity_wallet: NodeId,
+    #[structopt(long, env)]
+    pub charity_percentage: f64,
+}
+
 /// Configuration for LimitAgreements Negotiator.
 #[derive(StructOpt, Clone, Debug)]
 pub struct CompositeNegotiatorConfig {
@@ -63,6 +73,8 @@ pub struct CompositeNegotiatorConfig {
     pub debit_note_interval_config: DebitNoteIntervalConfig,
     #[structopt(flatten)]
     pub payment_timeout_config: PaymentTimeoutConfig,
+    #[structopt(flatten)]
+    pub charity_config: CharityConfig,
 }
 
 #[derive(StructOpt, Clone, Debug)]

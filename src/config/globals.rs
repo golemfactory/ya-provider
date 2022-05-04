@@ -20,6 +20,7 @@ pub struct GlobalsState {
     pub subnet: Option<String>,
     pub account: Option<NodeId>,
     pub charity_wallet: Option<NodeId>,
+    pub charity_percentage: Option<f32>,
 }
 
 impl<'de> Deserialize<'de> for GlobalsState {
@@ -50,6 +51,8 @@ impl<'de> Deserialize<'de> for GlobalsState {
             pub node_name: Option<String>,
             pub subnet: Option<String>,
             pub account: Option<Account>,
+            pub charity_wallet: Option<NodeId>,
+            pub charity_percentage: Option<f32>,
         }
 
         let s = GenericGlobalsState::deserialize(deserializer)?;
@@ -57,7 +60,8 @@ impl<'de> Deserialize<'de> for GlobalsState {
             node_name: s.node_name,
             subnet: s.subnet,
             account: s.account.map(|a| a.address()),
-            charity_wallet: Default::default(),
+            charity_wallet: s.charity_wallet,
+            charity_percentage: s.charity_percentage,
         })
     }
 }
@@ -98,6 +102,12 @@ impl GlobalsState {
         if node_config.account.account.is_some() {
             self.account = node_config.account.account;
         }
+        if node_config.charity_percentage.is_some() {
+            self.charity_percentage = node_config.charity_percentage;
+        }
+        if node_config.charity_wallet.is_some() {
+            self.charity_wallet = node_config.charity_wallet
+        }
         self.save(path)
     }
 
@@ -129,14 +139,34 @@ mod test {
 }
 "#;
 
+    const GLOBALS_JSON_ALPHA_5: &str = r#"
+    {
+        "node_name": "Artiel-Zyalilam",
+        "subnet": "LazySubnet30",
+        "account": "0x566b5284e1464946ce4edfc8fc9aca2388379a0a",
+        "charity_percentage": 0.5,
+        "charity_wallet": "0x979db95461652299c34e15df09441b8dfc4edf7a"
+    }
+    "#;
+
     #[test]
     fn deserialize_globals() {
         let mut g3: GlobalsState = serde_json::from_str(GLOBALS_JSON_ALPHA_3).unwrap();
         let g4: GlobalsState = serde_json::from_str(GLOBALS_JSON_ALPHA_4).unwrap();
+        let g5: GlobalsState = serde_json::from_str(GLOBALS_JSON_ALPHA_5).unwrap();
         assert_eq!(g3.node_name, Some("amusing-crate".into()));
         assert_eq!(g3.node_name, g4.node_name);
         assert_eq!(g3.subnet, Some("community.3".into()));
         assert_eq!(g4.subnet, Some("community.4".into()));
+        assert_eq!(
+            g5.charity_wallet,
+            Some(
+                "0x979db95461652299c34e15df09441b8dfc4edf7a"
+                    .parse()
+                    .unwrap()
+            )
+        );
+        assert_eq!(g5.charity_percentage, Some(0.5));
         g3.subnet = Some("community.4".into());
         assert_eq!(
             serde_json::to_string(&g3).unwrap(),

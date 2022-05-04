@@ -14,6 +14,7 @@ pub struct AccountView {
     pub network: String,
     pub platform: String,
     pub charity_address: Option<NodeId>,
+    pub charity_percentage: Option<f32>,
 }
 
 impl From<Account> for AccountView {
@@ -23,6 +24,7 @@ impl From<Account> for AccountView {
             network: account.network,                  // TODO: use TryFrom
             platform: account.platform,
             charity_address: None,
+            charity_percentage: None,
         }
     }
 }
@@ -144,6 +146,7 @@ impl PricingOffer for LinearPricingOffer {
                     format!("charity.platform.{}", account.platform),
                     json!({
                         "address".to_string(): charity_address,
+                        "percentage".to_string(): account.charity_percentage,
                     }),
                 );
             }
