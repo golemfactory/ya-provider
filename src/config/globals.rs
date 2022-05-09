@@ -29,10 +29,7 @@ pub struct GlobalsState {
 
 lazy_static! {
     pub static ref GLOBAL_STATE: RwLock<GlobalsState> = RwLock::new(
-        match GlobalsState::load(Path::new(GLOBALS_JSON)) {
-            Ok(c) => c,
-            Err(e) => panic!("{}", e),
-        }
+        GlobalsState::load(Path::new(GLOBALS_JSON)).unwrap()
     );
 }
 
@@ -84,14 +81,14 @@ impl GlobalsState {
         if path.exists() {
             log::debug!("Loading global state from: {}", path.display());
 
-            let state = serde_json::from_reader(io::BufReader::new(
+            let state : GlobalsState = serde_json::from_reader(io::BufReader::new(
                 fs::OpenOptions::new().read(true).open(path)?,
             ))?;
 
             let mut new_settings = GLOBAL_STATE.write().unwrap();
-            *new_settings = state;
+            *new_settings = state.clone();
 
-            Ok(GLOBAL_STATE.read().unwrap().clone())
+            Ok(state)
         } else {
             Ok(Self::default())
         }
