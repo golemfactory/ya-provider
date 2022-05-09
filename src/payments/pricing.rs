@@ -13,6 +13,8 @@ pub struct AccountView {
     pub address: NodeId,
     pub network: String,
     pub platform: String,
+    pub charity_address: Option<NodeId>,
+    pub charity_percentage: Option<f64>,
 }
 
 impl From<Account> for AccountView {
@@ -21,6 +23,8 @@ impl From<Account> for AccountView {
             address: account.address.parse().unwrap(), // TODO: use TryFrom
             network: account.network,                  // TODO: use TryFrom
             platform: account.platform,
+            charity_address: None,
+            charity_percentage: None,
         }
     }
 }
@@ -130,7 +134,8 @@ impl PricingOffer for LinearPricingOffer {
         });
 
         for account in accounts {
-            params.as_object_mut().unwrap().insert(
+            let params = params.as_object_mut().unwrap();
+            params.insert(
                 format!("payment.platform.{}", account.platform),
                 json!({
                     "address".to_string(): account.address,

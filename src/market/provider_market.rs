@@ -370,8 +370,10 @@ async fn process_agreement(
     );
 
     let config = ctx.config;
-    let agreement = AgreementView::try_from(serde_json::to_value(agreement)?)
-        .map_err(|e| anyhow!("Invalid agreement. Error: {}", e))?;
+    let agreement = AgreementView::try_from(ya_agreement_utils::agreement::expand(
+        serde_json::to_value(agreement)?,
+    ))
+    .map_err(|e| anyhow!("Invalid agreement. Error: {}", e))?;
 
     let action = ctx
         .negotiator
@@ -549,6 +551,18 @@ impl Handler<ReSubscribe> for ProviderMarket {
             );
         };
         ActorResponse::reply(Ok(()))
+    }
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<Arc<MarketConfig>>")]
+pub struct GetConfig();
+
+impl Handler<GetConfig> for ProviderMarket {
+    type Result = ActorResponse<Self, Arc<MarketConfig>, Error>;
+
+    fn handle(&mut self, _msg: GetConfig, _ctx: &mut Self::Context) -> Self::Result {
+        ActorResponse::reply(Ok(self.config.clone()))
     }
 }
 

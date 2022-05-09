@@ -6,7 +6,9 @@ use ya_agreement_utils::agreement::{expand, flatten_value};
 use ya_agreement_utils::AgreementView;
 use ya_client::model::market::NewOffer;
 
-use super::builtin::{DebitNoteInterval, LimitExpiration, MaxAgreements, PaymentTimeout};
+use super::builtin::{
+    CharityComponent, DebitNoteInterval, LimitExpiration, MaxAgreements, PaymentTimeout,
+};
 use super::common::{offer_definition_to_offer, AgreementResponse, Negotiator, ProposalResponse};
 use super::{NegotiationResult, NegotiatorsPack};
 use crate::market::negotiator::common::{
@@ -42,7 +44,8 @@ impl CompositeNegotiator {
             .add_component(
                 "PaymentTimeout",
                 Box::new(PaymentTimeout::new(&config.payment_timeout_config)?),
-            );
+            )
+            .add_component("Charity", Box::new(CharityComponent::new()?));
 
         Ok(CompositeNegotiator { components })
     }

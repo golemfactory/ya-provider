@@ -21,6 +21,7 @@ use crate::execution::{
 use crate::hardware;
 use crate::market::provider_market::{OfferKind, Shutdown as MarketShutdown, Unsubscribe};
 use crate::market::{CreateOffer, Preset, PresetManager, ProviderMarket};
+
 use crate::payments::{AccountView, LinearPricingOffer, Payments, PricingOffer};
 use crate::startup_config::{FileMonitor, NodeConfig, ProviderConfig, RunConfig};
 use crate::tasks::task_manager::{InitializeTaskManager, TaskManager};
@@ -162,66 +163,6 @@ impl ProviderAgent {
         })
     }
 
-    async fn create_offers(
-        presets: Vec<Preset>,
-        node_info: NodeInfo,
-        inf_node_info: InfNodeInfo,
-        runner: Addr<TaskRunner>,
-        market: Addr<ProviderMarket>,
-        accounts: Vec<AccountView>,
-    ) -> anyhow::Result<()> {
-        if presets.is_empty() {
-            return Err(anyhow!("No Presets were selected. Can't create offers."));
-        }
-
-        let preset_names = presets.iter().map(|p| &p.name).collect::<Vec<_>>();
-        log::debug!("Preset names: {:?}", preset_names);
-        let offer_templates = runner.send(GetOfferTemplates(presets.clone())).await??;
-        let subnet = &node_info.subnet;
-
-        for preset in presets {
-            let pricing_model: Box<dyn PricingOffer> = match preset.pricing_model.as_str() {
-                "linear" => Box::new(LinearPricingOffer::default()),
-                other => return Err(anyhow!("Unsupported pricing model: {}", other)),
-            };
-            let mut offer: OfferTemplate = offer_templates
-                .get(&preset.name)
-                .ok_or_else(|| anyhow!("Offer template not found for preset [{}]", preset.name))?
-                .clone();
-
-            let (initial_price, prices) = get_prices(pricing_model.as_ref(), &preset, &offer)?;
-            offer.set_property("golem.com.usage.vector", get_usage_vector_value(&prices));
-            offer.add_constraints(Self::build_constraints(subnet.clone())?);
-
-            let com_info = pricing_model.build(&accounts, initial_price, prices)?;
-            let name = preset.exeunit_name.clone();
-            let exeunit_desc = runner.send(GetExeUnit { name }).await?.map_err(|error| {
-                anyhow!(
-                    "Failed to create offer for preset [{}]. Error: {}",
-                    preset.name,
-                    error
-                )
-            })?;
-
-            let srv_info = ServiceInfo::new(inf_node_info.clone(), exeunit_desc.build())
-                .support_multi_activity(true);
-
-            // Create simple offer on market.
-            let create_offer_message = CreateOffer {
-                preset,
-                offer_definition: OfferDefinition {
-                    node_info: node_info.clone(),
-                    srv_info,
-                    com_info,
-                    offer,
-                },
-            };
-
-            market.send(create_offer_message).await??;
-        }
-        Ok(())
-    }
-
     fn build_constraints(subnet: Option<String>) -> anyhow::Result<String> {
         let mut cnts =
             constraints!["golem.srv.comp.expiration" > chrono::Utc::now().timestamp_millis(),];
@@ -253,12 +194,20 @@ impl ProviderAgent {
                 address,
                 networks,
             );
-            let accounts: Vec<AccountView> = self
+            let mut accounts: Vec<AccountView> = self
                 .accounts
                 .iter()
                 .filter(|acc| &acc.address == address && networks.contains(&acc.network))
                 .cloned()
                 .collect();
+
+            // TODO: Check charity network.
+            if let Some(charity_address) = globals.charity_wallet {
+                for account in &mut accounts {
+                    account.charity_percentage = globals.charity_percentage;
+                    account.charity_address = Some(charity_address);
+                }
+            }
 
             if accounts.is_empty() {
                 anyhow::bail!(
@@ -296,6 +245,66 @@ impl ProviderAgent {
             Ok(accounts)
         }
     }
+}
+
+async fn create_offers(
+    presets: Vec<Preset>,
+    node_info: NodeInfo,
+    inf_node_info: InfNodeInfo,
+    runner: Addr<TaskRunner>,
+    market: Addr<ProviderMarket>,
+    accounts: Vec<AccountView>,
+) -> anyhow::Result<()> {
+    if presets.is_empty() {
+        return Err(anyhow!("No Presets were selected. Can't create offers."));
+    }
+
+    let preset_names = presets.iter().map(|p| &p.name).collect::<Vec<_>>();
+    log::debug!("Preset names: {:?}", preset_names);
+    let offer_templates = runner.send(GetOfferTemplates(presets.clone())).await??;
+    let subnet = &node_info.subnet;
+
+    for preset in presets {
+        let pricing_model: Box<dyn PricingOffer> = match preset.pricing_model.as_str() {
+            "linear" => Box::new(LinearPricingOffer::default()),
+            other => return Err(anyhow!("Unsupported pricing model: {}", other)),
+        };
+        let mut offer: OfferTemplate = offer_templates
+            .get(&preset.name)
+            .ok_or_else(|| anyhow!("Offer template not found for preset [{}]", preset.name))?
+            .clone();
+
+        let (initial_price, prices) = get_prices(pricing_model.as_ref(), &preset, &offer)?;
+        offer.set_property("golem.com.usage.vector", get_usage_vector_value(&prices));
+        offer.add_constraints(ProviderAgent::build_constraints(subnet.clone())?);
+
+        let com_info = pricing_model.build(&accounts, initial_price, prices)?;
+        let name = preset.exeunit_name.clone();
+        let exeunit_desc = runner.send(GetExeUnit { name }).await?.map_err(|error| {
+            anyhow!(
+                "Failed to create offer for preset [{}]. Error: {}",
+                preset.name,
+                error
+            )
+        })?;
+
+        let srv_info = ServiceInfo::new(inf_node_info.clone(), exeunit_desc.build())
+            .support_multi_activity(true);
+
+        // Create simple offer on market.
+        let create_offer_message = CreateOffer {
+            preset,
+            offer_definition: OfferDefinition {
+                node_info: node_info.clone(),
+                srv_info,
+                com_info,
+                offer,
+            },
+        };
+
+        market.send(create_offer_message).await??;
+    }
+    Ok(())
 }
 
 fn get_prices(
@@ -483,9 +492,8 @@ impl Handler<CreateOffers> for ProviderAgent {
 
         let presets = self.presets.list_matching(&preset_names);
         async move {
-            Self::create_offers(presets?, node_info, inf_node_info, runner, market, accounts).await
-        }
-        .boxed_local()
+            create_offers(presets?, node_info, inf_node_info, runner, market, accounts).await
+        }.boxed_local()
     }
 }
 

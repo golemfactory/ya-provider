@@ -130,6 +130,10 @@ pub struct NodeConfig {
 
     #[structopt(flatten)]
     pub account: ReceiverAccount,
+    #[structopt(long)]
+    pub charity_wallet: Option<NodeId>,
+    #[structopt(long)]
+    pub charity_percentage: Option<f64>,
 }
 
 #[derive(StructOpt, Clone)]
