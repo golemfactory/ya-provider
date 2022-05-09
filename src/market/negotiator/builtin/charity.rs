@@ -21,7 +21,7 @@ static CHARITY_WALLET_PROPERTY: &'static str = "golem.com.payment.charity.charit
 static CHARITY_PERCENTAGE_PROPERTY: &'static str = "golem.com.payment.charity.charity-percentage";
 
 static CHARITY_CONFIRMATION_PROPERTY: &'static str =
-    "golem.com.payment.charity.charity-confirmation";
+    "/golem/com/payment/charity/charity-confirmation";
 
 fn extract_charity_confirmation(proposal: &ProposalView) -> Result<Option<bool>> {
     match proposal.pointer_typed::<bool>(CHARITY_CONFIRMATION_PROPERTY) {
