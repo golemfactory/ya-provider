@@ -141,15 +141,6 @@ impl PricingOffer for LinearPricingOffer {
                     "address".to_string(): account.address,
                 }),
             );
-            if let Some(charity_address) = account.charity_address {
-                params.insert(
-                    format!("charity.platform.{}", account.platform),
-                    json!({
-                        "address".to_string(): charity_address,
-                        "percentage".to_string(): account.charity_percentage,
-                    }),
-                );
-            }
         }
 
         Ok(ComInfo { params })

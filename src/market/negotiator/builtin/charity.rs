@@ -49,7 +49,7 @@ impl NegotiatorComponent for CharityComponent {
     ) -> anyhow::Result<NegotiationResult> {
 
         let state_read = GLOBAL_STATE.read().unwrap().clone();
-        if state_read.charity_percentage.unwrap() == 0.0 {
+        if state_read.charity_percentage.unwrap_or_default() == 0.0 {
             return Ok(NegotiationResult::Ready { offer });
         }
 
@@ -77,7 +77,7 @@ impl NegotiatorComponent for CharityComponent {
     fn fill_template(&mut self, mut template: OfferDefinition) -> anyhow::Result<OfferDefinition> {
         let state_read = GLOBAL_STATE.read().unwrap().clone();
 
-        if state_read.charity_percentage.unwrap() == 0.0 {
+        if state_read.charity_percentage.unwrap_or_default() == 0.0 {
             return Ok(template);
         }
 
