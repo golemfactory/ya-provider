@@ -13,19 +13,13 @@ use crate::market::negotiator::{
 };
 
 pub struct CharityComponent {
-    pub charity_wallet: NodeId,
-    pub charity_percentage: f64,
+
 }
 
 impl CharityComponent {
-    pub fn new(config: &CharityConfig) -> anyhow::Result<Self> {
-        let charity_wallet = config.charity_wallet;
-        let charity_percentage = config.charity_percentage;
+    pub fn new() -> anyhow::Result<Self> {
 
-        Ok(Self {
-            charity_wallet,
-            charity_percentage,
-        })
+        Ok(Self {})
     }
 }
 
@@ -53,6 +47,12 @@ impl NegotiatorComponent for CharityComponent {
         demand: &ProposalView,
         mut offer: ProposalView,
     ) -> anyhow::Result<NegotiationResult> {
+
+        let state_read = GLOBAL_STATE.read().unwrap().clone();
+        if state_read.charity_percentage.unwrap() == 0.0 {
+            return Ok(NegotiationResult::Ready { offer });
+        }
+
         let charity_confirmation = extract_charity_confirmation(demand)?;
 
         let confirmation = match charity_confirmation {
@@ -75,7 +75,11 @@ impl NegotiatorComponent for CharityComponent {
     }
 
     fn fill_template(&mut self, mut template: OfferDefinition) -> anyhow::Result<OfferDefinition> {
-        let state_read = GLOBAL_STATE.read().unwrap();
+        let state_read = GLOBAL_STATE.read().unwrap().clone();
+
+        if state_read.charity_percentage.unwrap() == 0.0 {
+            return Ok(template);
+        }
 
         template.offer.set_property(
             CHARITY_WALLET_PROPERTY,
