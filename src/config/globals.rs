@@ -4,7 +4,7 @@ use ya_client::model::NodeId;
 
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{fs, io};
-use std::ops::Deref;
+
 use lazy_static::lazy_static;
 use ya_utils_path::SwapSave;
 

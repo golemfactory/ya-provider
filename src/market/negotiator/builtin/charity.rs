@@ -1,13 +1,13 @@
-use anyhow::{anyhow, Result};
-use chrono::{DateTime, Duration, TimeZone, Utc};
-use serde_json::Number;
+use anyhow::{Result};
+
+
 
 use ya_agreement_utils::{Error, OfferDefinition};
-use ya_client::model::NodeId;
+
 use crate::config::globals::GLOBAL_STATE;
 
-use crate::display::EnableDisplay;
-use crate::market::negotiator::factory::{AgreementExpirationNegotiatorConfig, CharityConfig};
+
+
 use crate::market::negotiator::{
     AgreementResult, NegotiationResult, NegotiatorComponent, ProposalView,
 };
@@ -45,7 +45,7 @@ impl NegotiatorComponent for CharityComponent {
     fn negotiate_step(
         &mut self,
         demand: &ProposalView,
-        mut offer: ProposalView,
+        offer: ProposalView,
     ) -> anyhow::Result<NegotiationResult> {
 
         let state_read = GLOBAL_STATE.read().unwrap().clone();

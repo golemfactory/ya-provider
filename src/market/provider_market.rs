@@ -559,7 +559,7 @@ pub struct GetConfig ();
 impl Handler<GetConfig> for ProviderMarket {
     type Result = ActorResponse<Self, Arc<MarketConfig>, Error>;
 
-    fn handle(&mut self, msg: GetConfig, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, _msg: GetConfig, _ctx: &mut Self::Context) -> Self::Result {
         ActorResponse::reply(Ok(self.config.clone()))
     }
 }
