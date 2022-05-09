@@ -554,7 +554,7 @@ impl Handler<ReSubscribe> for ProviderMarket {
 
 #[derive(Message)]
 #[rtype(result = "Result<Arc<MarketConfig>>")]
-pub struct GetConfig ();
+pub struct GetConfig();
 
 impl Handler<GetConfig> for ProviderMarket {
     type Result = ActorResponse<Self, Arc<MarketConfig>, Error>;

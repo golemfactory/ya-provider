@@ -12,7 +12,7 @@ use ya_agreement_utils::*;
 use ya_client::cli::ProviderApi;
 use ya_file_logging::{start_logger, LoggerHandle};
 
-use crate::config::globals::{GlobalsState};
+use crate::config::globals::GlobalsState;
 use crate::dir::clean_provider_dir;
 use crate::events::Event;
 use crate::execution::{

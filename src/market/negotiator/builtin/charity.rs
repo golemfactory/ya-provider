@@ -1,24 +1,17 @@
-use anyhow::{Result};
-
-
+use anyhow::Result;
 
 use ya_agreement_utils::{Error, OfferDefinition};
 
 use crate::config::globals::GLOBAL_STATE;
 
-
-
 use crate::market::negotiator::{
     AgreementResult, NegotiationResult, NegotiatorComponent, ProposalView,
 };
 
-pub struct CharityComponent {
-
-}
+pub struct CharityComponent {}
 
 impl CharityComponent {
     pub fn new() -> anyhow::Result<Self> {
-
         Ok(Self {})
     }
 }
@@ -27,7 +20,8 @@ static CHARITY_WALLET_PROPERTY: &'static str = "golem.com.payment.charity.charit
 
 static CHARITY_PERCENTAGE_PROPERTY: &'static str = "golem.com.payment.charity.charity-percentage";
 
-static CHARITY_CONFIRMATION_PROPERTY: &'static str = "golem.com.payment.charity.charity-confirmation";
+static CHARITY_CONFIRMATION_PROPERTY: &'static str =
+    "golem.com.payment.charity.charity-confirmation";
 
 fn extract_charity_confirmation(proposal: &ProposalView) -> Result<Option<bool>> {
     match proposal.pointer_typed::<bool>(CHARITY_CONFIRMATION_PROPERTY) {
@@ -47,7 +41,6 @@ impl NegotiatorComponent for CharityComponent {
         demand: &ProposalView,
         offer: ProposalView,
     ) -> anyhow::Result<NegotiationResult> {
-
         let state_read = GLOBAL_STATE.read().unwrap().clone();
         if state_read.charity_percentage.unwrap_or_default() == 0.0 {
             return Ok(NegotiationResult::Ready { offer });
@@ -64,9 +57,7 @@ impl NegotiatorComponent for CharityComponent {
         //TODO maybe add an option to ignore lack of charity confirmation? (i know you dont understand charity but i may use you anyway)
         if confirmation == false {
             return Ok(NegotiationResult::Reject {
-                message: format!(
-                    "Charity protocol not recognized",
-                ),
+                message: format!("Charity protocol not recognized",),
                 is_final: true, // when it's too soon we could try later
             });
         }

@@ -45,10 +45,7 @@ impl CompositeNegotiator {
                 "PaymentTimeout",
                 Box::new(PaymentTimeout::new(&config.payment_timeout_config)?),
             )
-            .add_component(
-                "Charity",
-                Box::new(CharityComponent::new()?)
-            );
+            .add_component("Charity", Box::new(CharityComponent::new()?));
 
         Ok(CompositeNegotiator { components })
     }
