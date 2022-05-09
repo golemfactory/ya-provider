@@ -4,7 +4,11 @@ use ya_client::model::NodeId;
 
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{fs, io};
+use std::ops::Deref;
+use lazy_static::lazy_static;
 use ya_utils_path::SwapSave;
+
+use std::sync::RwLock;
 
 pub(crate) const GLOBALS_JSON: &'static str = "globals.json";
 
@@ -20,7 +24,16 @@ pub struct GlobalsState {
     pub subnet: Option<String>,
     pub account: Option<NodeId>,
     pub charity_wallet: Option<NodeId>,
-    pub charity_percentage: Option<f32>,
+    pub charity_percentage: Option<f64>,
+}
+
+lazy_static! {
+    pub static ref GLOBAL_STATE: RwLock<GlobalsState> = RwLock::new(
+        match GlobalsState::load(Path::new(GLOBALS_JSON)) {
+            Ok(c) => c,
+            Err(e) => panic!("{}", e),
+        }
+    );
 }
 
 impl<'de> Deserialize<'de> for GlobalsState {
@@ -52,7 +65,7 @@ impl<'de> Deserialize<'de> for GlobalsState {
             pub subnet: Option<String>,
             pub account: Option<Account>,
             pub charity_wallet: Option<NodeId>,
-            pub charity_percentage: Option<f32>,
+            pub charity_percentage: Option<f64>,
         }
 
         let s = GenericGlobalsState::deserialize(deserializer)?;
@@ -70,9 +83,15 @@ impl GlobalsState {
     pub fn load(path: &Path) -> anyhow::Result<Self> {
         if path.exists() {
             log::debug!("Loading global state from: {}", path.display());
-            Ok(serde_json::from_reader(io::BufReader::new(
+
+            let state = serde_json::from_reader(io::BufReader::new(
                 fs::OpenOptions::new().read(true).open(path)?,
-            ))?)
+            ))?;
+
+            let mut new_settings = GLOBAL_STATE.write().unwrap();
+            *new_settings = state;
+
+            Ok(GLOBAL_STATE.read().unwrap().clone())
         } else {
             Ok(Self::default())
         }

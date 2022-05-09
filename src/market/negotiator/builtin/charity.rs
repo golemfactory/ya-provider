@@ -4,6 +4,7 @@ use serde_json::Number;
 
 use ya_agreement_utils::{Error, OfferDefinition};
 use ya_client::model::NodeId;
+use crate::config::globals::GLOBAL_STATE;
 
 use crate::display::EnableDisplay;
 use crate::market::negotiator::factory::{AgreementExpirationNegotiatorConfig, CharityConfig};
@@ -32,7 +33,7 @@ static CHARITY_WALLET_PROPERTY: &'static str = "golem.com.payment.charity.charit
 
 static CHARITY_PERCENTAGE_PROPERTY: &'static str = "golem.com.payment.charity.charity-percentage";
 
-static CHARITY_CONFIRMATION_PROPERTY: &'static str = "golem.com.payment.charity.charity-wallet";
+static CHARITY_CONFIRMATION_PROPERTY: &'static str = "golem.com.payment.charity.charity-confirmation";
 
 fn extract_charity_confirmation(proposal: &ProposalView) -> Result<Option<bool>> {
     match proposal.pointer_typed::<bool>(CHARITY_CONFIRMATION_PROPERTY) {
@@ -60,7 +61,6 @@ impl NegotiatorComponent for CharityComponent {
         };
 
         //does not understand charity
-        //TODO cleanup this reject
         //TODO maybe add an option to ignore lack of charity confirmation? (i know you dont understand charity but i may use you anyway)
         if confirmation == false {
             return Ok(NegotiationResult::Reject {
@@ -75,14 +75,16 @@ impl NegotiatorComponent for CharityComponent {
     }
 
     fn fill_template(&mut self, mut template: OfferDefinition) -> anyhow::Result<OfferDefinition> {
+        let state_read = GLOBAL_STATE.read().unwrap();
+
         template.offer.set_property(
             CHARITY_WALLET_PROPERTY,
-            serde_json::Value::String("asd".to_string()), //TODO extract wallet info from globals
+            state_read.charity_wallet.unwrap().to_string().into(),
         );
 
         template.offer.set_property(
             CHARITY_PERCENTAGE_PROPERTY,
-            serde_json::Value::Number(Number::from_f64(0.0).unwrap()), //TODO extract wallet info from globals
+            state_read.charity_percentage.unwrap().into(),
         );
 
         Ok(template)

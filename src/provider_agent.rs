@@ -12,15 +12,16 @@ use ya_agreement_utils::*;
 use ya_client::cli::ProviderApi;
 use ya_file_logging::{start_logger, LoggerHandle};
 
-use crate::config::globals::GlobalsState;
+use crate::config::globals::{GlobalsState, GLOBAL_STATE};
 use crate::dir::clean_provider_dir;
 use crate::events::Event;
 use crate::execution::{
     GetExeUnit, GetOfferTemplates, Shutdown as ShutdownExecution, TaskRunner, UpdateActivity,
 };
 use crate::hardware;
-use crate::market::provider_market::{OfferKind, Shutdown as MarketShutdown, Unsubscribe};
+use crate::market::provider_market::{GetConfig, OfferKind, Shutdown as MarketShutdown, Unsubscribe};
 use crate::market::{CreateOffer, Preset, PresetManager, ProviderMarket};
+use crate::market::config::MarketConfig;
 use crate::payments::{AccountView, LinearPricingOffer, Payments, PricingOffer};
 use crate::startup_config::{FileMonitor, NodeConfig, ProviderConfig, RunConfig};
 use crate::tasks::task_manager::{InitializeTaskManager, TaskManager};

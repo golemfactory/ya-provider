@@ -14,7 +14,7 @@ pub struct AccountView {
     pub network: String,
     pub platform: String,
     pub charity_address: Option<NodeId>,
-    pub charity_percentage: Option<f32>,
+    pub charity_percentage: Option<f64>,
 }
 
 impl From<Account> for AccountView {

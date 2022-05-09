@@ -56,9 +56,7 @@ pub struct PaymentTimeoutConfig {
 /// Configuration for Charity negotiator
 #[derive(StructOpt, Clone, Debug)]
 pub struct CharityConfig {
-    #[structopt(long, env)]
     pub charity_wallet: NodeId,
-    #[structopt(long, env)]
     pub charity_percentage: f64,
 }
 
@@ -73,8 +71,7 @@ pub struct CompositeNegotiatorConfig {
     pub debit_note_interval_config: DebitNoteIntervalConfig,
     #[structopt(flatten)]
     pub payment_timeout_config: PaymentTimeoutConfig,
-    #[structopt(flatten)]
-    pub charity_config: CharityConfig,
+    //pub charity_config: CharityConfig,
 }
 
 #[derive(StructOpt, Clone, Debug)]

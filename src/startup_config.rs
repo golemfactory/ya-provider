@@ -133,7 +133,7 @@ pub struct NodeConfig {
     #[structopt(long)]
     pub charity_wallet: Option<NodeId>,
     #[structopt(long)]
-    pub charity_percentage: Option<f32>,
+    pub charity_percentage: Option<f64>,
 }
 
 #[derive(StructOpt, Clone)]

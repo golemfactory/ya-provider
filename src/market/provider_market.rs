@@ -553,6 +553,18 @@ impl Handler<ReSubscribe> for ProviderMarket {
 }
 
 #[derive(Message)]
+#[rtype(result = "Result<Arc<MarketConfig>>")]
+pub struct GetConfig ();
+
+impl Handler<GetConfig> for ProviderMarket {
+    type Result = ActorResponse<Self, Arc<MarketConfig>, Error>;
+
+    fn handle(&mut self, msg: GetConfig, ctx: &mut Self::Context) -> Self::Result {
+        ActorResponse::reply(Ok(self.config.clone()))
+    }
+}
+
+#[derive(Message)]
 #[rtype(result = "Result<()>")]
 struct PostponeDemand(SubscriptionProposal);
 
